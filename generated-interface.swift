@@ -1,4 +1,4 @@
-// Xcode 12.2 beta (12B5025f)
+// Xcode 12.2 beta 3 (12B5035g)
 
 import Combine
 import CoreData
@@ -5648,6 +5648,10 @@ extension EnvironmentValues {
     /// In these cases it may be needed for UI drawing to be adjusted to in
     /// order to display optimally when inverted.
     public var accessibilityInvertColors: Bool { get }
+}
+
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+extension EnvironmentValues {
 
     /// Whether the system preference for Show Button Shapes is enabled.
     ///
@@ -14036,7 +14040,7 @@ public struct Stepper<Label> : View where Label : View {
 
     /// Creates a stepper instance that performs the closures you provide when
     /// the user increments or decrements the stepper.
-    /// 
+    ///
     /// Use this initializer to create a control with a custom title that
     /// executes closures you provide when the user clicks or taps the
     /// stepper's increment or decrement buttons.
@@ -22602,7 +22606,7 @@ public protocol WidgetConfiguration {
     /// implementation of the required `body` property.
     associatedtype Body : WidgetConfiguration
 
-    /// Declares the content and behavior of this widget.
+    /// The content and behavior of this widget.
     var body: Self.Body { get }
 }
 
