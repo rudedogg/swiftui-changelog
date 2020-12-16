@@ -1,4 +1,4 @@
-// Xcode 12.3 beta (12C5020f)
+// Xcode 12.3 (12C33)
 
 import Combine
 import CoreData
@@ -3451,8 +3451,53 @@ extension ContentSizeCategory {
 /// A container for views that you present as menu items in a contextual menu
 /// after completion of the standard system gesture.
 ///
-/// Relate the controls that a `ContextMenu` contains to the context from
-/// which you show them.
+/// A context menu view allows you to present a situationally specific menu to
+/// the user allowing them to perform actions relevant to the current task
+/// they're performing in your app.
+///
+/// You create a context menu by first defining a `ContextMenu` container
+/// with the buttons that will represent the actions the user can select
+/// from. Next, you add a ``View/contextMenu(_:)`` view modifier to the view that
+/// will enable the context menu. The context menu view modifier takes
+/// the menu items you defined above as its argument.
+///
+/// The example below creates a four-item context menu container
+/// used by the context menu view modifier. The Boolean value
+/// `shouldShowMenu` controls the attachment of context menu; it is set to
+/// `true`, enabling the contextual menu.
+///
+/// Note that it is possible to place the actions performed by the menu
+/// selection directly inside the button closures or, as shown below, to invoke
+/// them via function references.
+///
+///     func selectHearts() {
+///         // Act on hearts selection.
+///     }
+///     func selectClubs() { ... }
+///     func selectSpades() { ... }
+///     func selectDiamonds() { ... }
+///
+///     let menuItems = ContextMenu {
+///         Button("♥️ - Hearts", action: selectHearts)
+///         Button("♣️ - Clubs", action: selectClubs)
+///         Button("♠️ - Spades", action: selectSpades)
+///         Button("♦️ - Diamonds", action: selectDiamonds)
+///     }
+///
+///     struct ContextMenuMenuItems: View {
+///         private var shouldShowMenu = true
+///         var body: some View {
+///             VStack {
+///                 Text("Favorite Card Suit")
+///                     .padding()
+///                     .contextMenu(shouldShowMenu ? menuItems : nil)
+///             }
+///         }
+///     }
+///
+/// ![A screenshot of a context menu showing four menu items: Hearts, Clubs,
+/// Spades and Diamonds.](SwiftUI-contextMenu.png)
+///
 @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use `contextMenu(menuItems:)` instead.")
 @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Use `contextMenu(menuItems:)` instead.")
 @available(tvOS, unavailable)
@@ -13718,7 +13763,7 @@ public struct SidebarListStyle : ListStyle {
 }
 
 /// A gesture containing two gestures that can happen at the same time with
-/// neither of them preceeding the other.
+/// neither of them preceding the other.
 ///
 /// A simultaneous gesture is a container-event handler that evaluates its two
 /// child gestures at the same time. Its value is a struct with two optional
@@ -15093,7 +15138,7 @@ public struct TapGesture : Gesture {
 
     /// Creates a text view that displays a stored string without localization.
     ///
-    /// Use this intializer to create a text view that displays — without
+    /// Use this initializer to create a text view that displays — without
     /// localization — the text in a string variable.
     ///
     ///     Text(someString) // Displays the contents of `someString` without localization.
@@ -15227,7 +15272,7 @@ extension Text {
 
     /// Creates a text view that displays localized content identified by a key.
     ///
-    /// Use this intializer to look for the `key` parameter in a localization
+    /// Use this initializer to look for the `key` parameter in a localization
     /// table and display the associated string value in the initialized text
     /// view. If the initializer can't find the key in the table, or if no table
     /// exists, the text view displays the string representation of the key
@@ -17964,7 +18009,8 @@ extension View {
     ///             Button("♦️ - Diamonds", action: selectDiamonds)
     ///         }
     ///
-    /// ![A context menu showing four menu items.](SwiftUI-contextMenu.png)
+    /// ![A screenshot of a context menu showing four menu items: Hearts, Clubs,
+    /// Spades and Diamonds.](SwiftUI-contextMenu.png)
     ///
     /// - Parameter menuItems: A `contextMenu` that contains one or more menu items.
     /// - Returns: A view that adds a contextual menu to this view.
@@ -18018,6 +18064,9 @@ extension View {
     ///         }
     ///     }
     ///
+    /// ![A screenshot of a context menu showing four menu items: Hearts, Clubs,
+    /// Spades and Diamonds.](SwiftUI-contextMenu.png)
+    ///
     /// - Parameter contextMenu: A context menu container for views that you
     ///   present as menu items in a contextual menu.
     ///
@@ -18051,16 +18100,145 @@ extension View {
 
     /// Attaches a gesture to the view with a lower precedence than gestures
     /// defined by the view.
+    ///
+    /// Use this method when you need to attach a gesture to a view. The
+    /// example below defines a custom gesture that prints a message to the
+    /// console and attaches it to the view's ``VStack``. Inside the ``VStack``
+    /// a red heart ``Image`` defines its own ``TapGesture``
+    /// handler that also prints a message to the console, and blue rectangle
+    /// with no custom gesture handlers. Tapping or clicking the image
+    /// prints a message to the console from the tap gesture handler on the
+    /// image, while tapping or clicking  the rectangle inside the ``VStack``
+    /// prints a message in the console from the enclosing vertical stack
+    /// gesture handler.
+    ///
+    ///     struct GestureExample: View {
+    ///         @State private var message = "Message"
+    ///         let newGesture = TapGesture().onEnded {
+    ///             print("Tap on VStack.")
+    ///         }
+    ///
+    ///         var body: some View {
+    ///             VStack(spacing:25) {
+    ///                 Image(systemName: "heart.fill")
+    ///                     .resizable()
+    ///                     .frame(width: 75, height: 75)
+    ///                     .padding()
+    ///                     .foregroundColor(.red)
+    ///                     .onTapGesture {
+    ///                         print("Tap on image.")
+    ///                     }
+    ///                 Rectangle()
+    ///                     .fill(Color.blue)
+    ///             }
+    ///             .gesture(newGesture)
+    ///             .frame(width: 200, height: 200)
+    ///             .border(Color.purple)
+    ///         }
+    ///     }
+    ///
+    /// - Parameters:
+    ///    - gesture: A gesture to attach to the view.
+    ///    - mask: A value that controls how adding this gesture to the view
+    ///      affects other gestures recognized by the view and its subviews.
+    ///      Defaults to ``SwiftUI/GestureMask/all``.
     public func gesture<T>(_ gesture: T, including mask: GestureMask = .all) -> some View where T : Gesture
 
 
     /// Attaches a gesture to the view with a higher precedence than gestures
     /// defined by the view.
+    ///
+    /// Use this method when you need to define a high priority gesture
+    /// to take precedence over the view's existing gestures. The
+    /// example below defines a custom gesture that prints a message to the
+    /// console and attaches it to the view's ``VStack``. Inside the ``VStack``
+    /// a red heart ``Image`` defines its own ``TapGesture`` handler that
+    /// also prints a message to the console, and a blue rectangle
+    /// with no custom gesture handlers. Tapping or clicking any of the
+    /// views results in a console message from the high priority gesture
+    /// attached to the enclosing ``VStack``.
+    ///
+    ///     struct HighPriorityGestureExample: View {
+    ///         @State private var message = "Message"
+    ///         let newGesture = TapGesture().onEnded {
+    ///             print("Tap on VStack.")
+    ///         }
+    ///
+    ///         var body: some View {
+    ///             VStack(spacing:25) {
+    ///                 Image(systemName: "heart.fill")
+    ///                     .resizable()
+    ///                     .frame(width: 75, height: 75)
+    ///                     .padding()
+    ///                     .foregroundColor(.red)
+    ///                     .onTapGesture {
+    ///                         print("Tap on image.")
+    ///                     }
+    ///                 Rectangle()
+    ///                     .fill(Color.blue)
+    ///             }
+    ///             .highPriorityGesture(newGesture)
+    ///             .frame(width: 200, height: 200)
+    ///             .border(Color.purple)
+    ///         }
+    ///     }
+    ///
+    /// - Parameters:
+    ///    - gesture: A gesture to attach to the view.
+    ///    - mask: A value that controls how adding this gesture to the view
+    ///      affects other gestures recognized by the view and its subviews.
+    ///      Defaults to ``SwiftUI/GestureMask/all``.
     public func highPriorityGesture<T>(_ gesture: T, including mask: GestureMask = .all) -> some View where T : Gesture
 
 
     /// Attaches a gesture to the view to process simultaneously with gestures
     /// defined by the view.
+    ///
+    /// Use this method when you need to define and process  a view specific
+    /// gesture simultaneously with the same priority as the
+    /// view's existing gestures. The example below defines a custom gesture
+    /// that prints a message to the console and attaches it to the view's
+    /// ``VStack``. Inside the ``VStack`` is a red heart ``Image`` defines its
+    /// own ``TapGesture`` handler that also prints a message to the console
+    /// and a blue rectangle with no custom gesture handlers.
+    ///
+    /// Tapping or clicking the "heart" image sends two messages to the
+    /// console: one for the image's tap gesture handler, and the other from a
+    /// custom gesture handler attached to the enclosing vertical stack.
+    /// Tapping or clicking on the blue rectangle results only in the single
+    /// message to the console from the tap recognizer attached to the
+    /// ``VStack``:
+    ///
+    ///     struct SimultaneousGestureExample: View {
+    ///         @State private var message = "Message"
+    ///         let newGesture = TapGesture().onEnded {
+    ///             print("Gesture on VStack.")
+    ///         }
+    ///
+    ///         var body: some View {
+    ///             VStack(spacing:25) {
+    ///                 Image(systemName: "heart.fill")
+    ///                     .resizable()
+    ///                     .frame(width: 75, height: 75)
+    ///                     .padding()
+    ///                     .foregroundColor(.red)
+    ///                     .onTapGesture {
+    ///                         print("Gesture on image.")
+    ///                     }
+    ///                 Rectangle()
+    ///                     .fill(Color.blue)
+    ///             }
+    ///             .simultaneousGesture(newGesture)
+    ///             .frame(width: 200, height: 200)
+    ///             .border(Color.purple)
+    ///         }
+    ///     }
+    ///
+    /// - Parameters:
+    ///    - gesture: A gesture to attach to the view.
+    ///    - mask: A value that controls how adding this gesture to the view
+    ///      affects other gestures recognized by the view and its subviews.
+    ///      Defaults to ``SwiftUI/GestureMask/all``.
     public func simultaneousGesture<T>(_ gesture: T, including mask: GestureMask = .all) -> some View where T : Gesture
 
 }
@@ -19636,26 +19814,34 @@ extension View {
     /// list row item.
     ///
     /// In the example below, the `Flavor` enumeration provides content for list
-    /// items. The SwiftUI ``List`` builder iterates over the `Flavor`
-    /// enumeration and extracts the raw value of each of its elements using the
-    /// resulting text to create each list row item. After the list builder
-    /// finishes, the `listRowBackground(_:)` modifier places the view you
-    /// supply behind each of the list row items.
+    /// items. The SwiftUI ``ForEach`` structure computes views for each element
+    /// of the `Flavor` enumeration and extracts the raw value of each of its
+    /// elements using the resulting text to create each list row item. The
+    /// `listRowBackground(_:)` modifier then places the view you supply behind
+    /// each of the list row items:
     ///
-    ///     struct ListRowBackground: View {
-    ///
+    ///     struct ContentView: View {
     ///         enum Flavor: String, CaseIterable, Identifiable {
     ///             var id: String { self.rawValue }
     ///             case vanilla, chocolate, strawberry
     ///         }
     ///
     ///         var body: some View {
-    ///             List(Flavor.allCases, id: \.self) {
-    ///                 Text($0.rawValue)
+    ///             List {
+    ///                 ForEach(Flavor.allCases) {
+    ///                     Text($0.rawValue)
+    ///                         .listRowBackground(Ellipse()
+    ///                                             .background(Color.clear)
+    ///                                             .foregroundColor(.purple)
+    ///                                             .opacity(0.3)
+    ///                         )
+    ///                 }
     ///             }
-    ///             .listRowBackground(Image(systemName: "sparkles"))
     ///         }
     ///     }
+    ///
+    /// ![A screenshot showing the placement of an image as the background to
+    ///   each row in a list.](SwiftUI-View-listRowBackground.png)
     ///
     /// - Parameter view: The ``View`` to use as the background behind the list
     ///   row view.
@@ -20195,14 +20381,12 @@ extension View {
     ///             TabView {
     ///                 View1()
     ///                     .tabItem {
-    ///                         Image(systemName: "list.dash")
-    ///                         Text("Menu")
+    ///                         Label("Menu", systemImage: "list.dash")
     ///                     }
     ///
     ///                 View2()
     ///                     .tabItem {
-    ///                         Image(systemName: "square.and.pencil")
-    ///                         Text("Order")
+    ///                         Label("Order", systemImage: "square.and.pencil")
     ///                     }
     ///             }
     ///         }
@@ -21103,6 +21287,40 @@ extension View {
 extension View {
 
     /// Adds an action to perform when this view recognizes a tap gesture.
+    ///
+    /// Use this method to perform a specific `action` when the user clicks or
+    /// taps on the view or container `count` times.
+    ///
+    /// > Note: If you are creating a control that's functionally equivalent
+    /// to a ``Button``, use ``ButtonStyle`` to create a customized button
+    /// instead.
+    ///
+    /// In the example below, the color of the heart images changes to a random
+    /// color from the `colors` array whenever the user clicks or taps on the
+    /// view twice:
+    ///
+    ///     struct TapGestureExample: View {
+    ///         let colors: [Color] = [.gray, .red, .orange, .yellow,
+    ///                                .green, .blue, .purple, .pink]
+    ///         @State private var fgColor: Color = .gray
+    ///
+    ///         var body: some View {
+    ///             Image(systemName: "heart.fill")
+    ///                 .resizable()
+    ///                 .frame(width: 200, height: 200)
+    ///                 .foregroundColor(fgColor)
+    ///                 .onTapGesture(count: 2, perform: {
+    ///                     fgColor = colors.randomElement()!
+    ///                 })
+    ///         }
+    ///     }
+    ///
+    /// ![A screenshot of a view of a heart.](SwiftUI-View-TapGesture.png)
+    ///
+    /// - Parameters:
+    ///    - count: The number of taps or clicks required to trigger the action
+    ///      closure provided in `action`. Defaults to `1`.
+    ///    - action: The action to perform.
     public func onTapGesture(count: Int = 1, perform action: @escaping () -> Void) -> some View
 
 }
@@ -21116,28 +21334,36 @@ extension View {
     /// list items.
     ///
     /// In the example below, the `Flavor` enumeration provides content for list
-    /// items. The SwiftUI ``List`` builder iterates over the `Flavor`
-    /// enumeration and extracts the raw value of each of its elements using the
-    /// resulting text to create each list row item. After the list builder
-    /// finishes, the `listRowInsets(_:)` modifier changes the edge insets of
-    /// each row of the list according to the ``EdgeInsets`` values you provide.
+    /// items. The SwiftUI ``ForEach`` structure computes views for each element
+    /// of the `Flavor` enumeration and extracts the raw value of each of its
+    /// elements using the resulting text to create each list row item. The
+    /// `listRowInsets(_:)` modifier then changes the edge insets of each row
+    /// of the list according to the ``EdgeInsets`` provided:
     ///
-    ///     struct ListRowInsets: View {
+    ///     struct ContentView: View {
     ///         enum Flavor: String, CaseIterable, Identifiable {
     ///             var id: String { self.rawValue }
     ///             case vanilla, chocolate, strawberry
     ///         }
     ///
     ///         var body: some View {
-    ///             List(Flavor.allCases, id: \.self) {
-    ///                 Text($0.rawValue)
+    ///             List {
+    ///                 ForEach(Flavor.allCases) {
+    ///                     Text($0.rawValue)
+    ///                         .listRowInsets(.init(top: 0,
+    ///                                              leading: 25,
+    ///                                              bottom: 0,
+    ///                                              trailing: 0))
+    ///                 }
     ///             }
-    ///             .listRowInsets(EdgeInsets(top: 0, leading: 75, bottom: 0, trailing: 0))
     ///         }
     ///     }
     ///
-    /// - Parameter insets: ``EdgeInsets`` to apply to the edges of the view.
+    /// ![A screenshot showing a list with leading 25 point inset on each
+    ///  row.](SwiftUI-View-ListRowInsets.png)
     ///
+    /// - Parameter insets: The ``EdgeInsets`` to apply to the edges of the
+    ///   view.
     /// - Returns: A view that uses the given edge insets when used as a list
     ///   cell.
     @inlinable public func listRowInsets(_ insets: EdgeInsets?) -> some View
@@ -21756,17 +21982,73 @@ extension View {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension View {
 
-    /// Applies the given transaction mutation function to all transactions used
+    /// Applies the given transaction mutation function to all animations used
     /// within the view.
     ///
-    /// Use this modifier on leaf views rather than container views. The
+    /// Use this modifier to change or replace the animation used in a view.
+    /// Consider three identical animations controlled by a
+    /// button that executes all three animations simultaneously:
+    ///
+    ///  * The first animation rotates the "Rotation" ``Text`` view by 360
+    ///    degrees.
+    ///  * The second uses the `transaction(_:)` modifier to change the
+    ///    animation by adding a delay to the start of the animation
+    ///    by two seconds and then increases the rotational speed of the
+    ///    "Rotation\nModified" ``Text`` view animation by a factor of 2.
+    ///  * The third animation uses the `transaction(_:)` modifier to
+    ///    replace the rotation animation affecting the "Animation\nReplaced"
+    ///    ``Text`` view with a spring animation.
+    ///
+    /// The following code implements these animations:
+    ///
+    ///     struct TransactionExample: View {
+    ///         @State var flag = false
+    ///
+    ///         var body: some View {
+    ///             VStack(spacing: 50) {
+    ///                 HStack(spacing: 30) {
+    ///                     Text("Rotation")
+    ///                         .rotationEffect(Angle(degrees:
+    ///                                                 self.flag ? 360 : 0))
+    ///
+    ///                     Text("Rotation\nModified")
+    ///                         .rotationEffect(Angle(degrees:
+    ///                                                 self.flag ? 360 : 0))
+    ///                         .transaction { view in
+    ///                             view.animation =
+    ///                                 view.animation?.delay(2.0).speed(2)
+    ///                         }
+    ///
+    ///                     Text("Animation\nReplaced")
+    ///                         .rotationEffect(Angle(degrees:
+    ///                                                 self.flag ? 360 : 0))
+    ///                         .transaction { view in
+    ///                             view.animation = .interactiveSpring(
+    ///                                 response: 0.60,
+    ///                                 dampingFraction: 0.20,
+    ///                                 blendDuration: 0.25)
+    ///                         }
+    ///                 }
+    ///
+    ///                 Button("Animate") {
+    ///                     withAnimation(.easeIn(duration: 2.0)) {
+    ///                         self.flag.toggle()
+    ///                     }
+    ///                 }
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// Use this modifier on leaf views such as ``Image`` or ``Button`` rather
+    /// than container views such as ``VStack`` or ``HStack``. The
     /// transformation applies to all child views within this view; calling
-    /// `transaction(_:)` on a container view can lead to unbounded scope.
+    /// `transaction(_:)` on a container view can lead to unbounded scope of
+    /// execution depending on the depth of the view hierarchy.
     ///
     /// - Parameter transform: The transformation to apply to transactions
     ///   within this view.
     ///
-    /// - Returns: A view that wraps this view and applies `transformation` to
+    /// - Returns: A view that wraps this view and applies a transformation to
     ///   all transactions used within the view.
     @inlinable public func transaction(_ transform: @escaping (inout Transaction) -> Void) -> some View
 
@@ -23533,3 +23815,4 @@ extension CGFloat : VectorArithmetic {
 @available(watchOS, unavailable)
 extension Never : Commands {
 }
+
